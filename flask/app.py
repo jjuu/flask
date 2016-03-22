@@ -51,6 +51,7 @@ def _make_timedelta(value):
 def setupmethod(f):
     """Wraps a method so that it performs a check in debug mode if the
     first request was already handled.
+    包装一个函数用于在debug模式下检查第一个request是否已经被处理过了
     """
     def wrapper_func(self, *args, **kwargs):
         if self.debug and self._got_first_request:
@@ -70,34 +71,46 @@ class Flask(_PackageBoundObject):
     object.  It is passed the name of the module or package of the
     application.  Once it is created it will act as a central registry for
     the view functions, the URL rules, template configuration and much more.
+    翻译: flask 对象实现了WSGI应用, 并且作为中心对象. 此类的初始化参数为模块或应用的名字.
+    次对象创建后, 会具有作为视图函数的中央路由注册器, 或设置URL规则, 设置模板设置等等功能.
 
     The name of the package is used to resolve resources from inside the
     package or the folder the module is contained in depending on if the
     package parameter resolves to an actual python package (a folder with
     an :file:`__init__.py` file inside) or a standard module (just a ``.py`` file).
+    翻译: 包的名字用于定位包或模块所在文件夹内的资源, 这取决于包的参数是否指向了一个python包(即一个包含__init__.py的文件夹),
+    或一个标准模块(一个.py文件)
 
     For more information about resource loading, see :func:`open_resource`.
+    翻译: 更多关于资源加载的信息, 参考 :func:`open_resource`
 
     Usually you create a :class:`Flask` instance in your main module or
     in the :file:`__init__.py` file of your package like this::
+    翻译: 通常情况下,在主模块或__init__.py文件里,创建一个 :class:`Flask`的实例, 像下面这样
 
         from flask import Flask
         app = Flask(__name__)
 
-    .. admonition:: About the First Parameter
+    .. admonition:: About the First Parameter   翻译: 关于第一个参数
 
         The idea of the first parameter is to give Flask an idea of what
         belongs to your application.  This name is used to find resources
         on the filesystem, can be used by extensions to improve debugging
         information and a lot more.
+        翻译: 第一个参数的设计理念是让Flask知道哪些东东属于你的应用. 此名字用于找到
+              文件系统里的资源, 可以为了改进debug信息等等进行扩展.
 
         So it's important what you provide there.  If you are using a single
         module, `__name__` is always the correct value.  If you however are
         using a package, it's usually recommended to hardcode the name of
         your package there.
+        翻译: 因此, 你所提供的信息就显得尤为重要. 如果你使用一个独立的模块, `__name__`
+              总是你正确的选择. 如果你用一个包, 则你会通常把它定义为包的名字.
 
         For example if your application is defined in :file:`yourapplication/app.py`
         you should create it with one of the two versions below::
+        翻译: 例如, 如果你的应用定义在 :file:`yourapplication/app.py` 下面
+              那么你可以按照如下两种方式来定义 Flask 对象.
 
             app = Flask('yourapplication')
             app = Flask(__name__.split('.')[0])
@@ -111,6 +124,13 @@ class Flask(_PackageBoundObject):
         up, that debugging information is lost.  (For example it would only
         pick up SQL queries in `yourapplication.app` and not
         `yourapplication.views.frontend`)
+        翻译: 为什么要这样做? Flask 对象的第一个参数在传递 `__name__` 后仍然会工作, 这
+              多亏Flask是如何寻找资源的. 然而, 这会在debug时带来更多痛苦. 某些扩展可以
+              按照你应用的名字做一些预处理(也就是说会假设应用名字是你所定义的应用名).
+              例如, Flask-SQLAlchemy 会在 debug 模式下查找应用里处罚了SQL查询的代码.
+              如果引用名没有被恰当的设定, 那么 debug 信息则会
+              丢失(例如, 只会有`yourapplication.app`中的信息, 而会丢失
+              `yourapplication.views.frontend`里面的调试信息).
 
     .. versionadded:: 0.7
        The `static_url_path`, `static_folder`, and `template_folder`
@@ -123,30 +143,48 @@ class Flask(_PackageBoundObject):
     .. versionadded:: 1.0
        The `root_path` parameter was added.
 
-    :param import_name: the name of the application package
+    :param import_name: the name of the application package   翻译: flask 应用的包名
     :param static_url_path: can be used to specify a different path for the
                             static files on the web.  Defaults to the name
                             of the `static_folder` folder.
+                            翻译: 可以给静态资源指定一个不同的路径. 默认值为 static_folder
+
     :param static_folder: the folder with static files that should be served
                           at `static_url_path`.  Defaults to the ``'static'``
                           folder in the root path of the application.
+                          翻译: 静态文件路径, 应该在`static_url_path`中指定. 默认为 flask 应用的根目录
+
     :param template_folder: the folder that contains the templates that should
                             be used by the application.  Defaults to
                             ``'templates'`` folder in the root path of the
                             application.
+                            翻译: 包含模板文件的目录. 默认值为 flask 应用的根目录下的 templates 文件夹内
+
     :param instance_path: An alternative instance path for the application.
                           By default the folder ``'instance'`` next to the
                           package or module is assumed to be the instance
                           path.
+                          翻译: 用于创建 Flask 应用时显式的提供实例文件夹的路径.
+                                或者 让 Flask 自动探测实例文件夹. 必须是绝对路径.
+
     :param instance_relative_config: if set to ``True`` relative filenames
                                      for loading the config are assumed to
                                      be relative to the instance path instead
                                      of the application root.
+                                     翻译: 如果我们设置 instance_path='/home/wang/myproject/flaskr/abc',
+                                           并设置instance_relative_config=True.
+                                           此时，我们在 /home/wang/myproject/flaskr/abc 中写一个配置文件abc.cfg。
+                                           然后使用app.config.from_pyfile('abc.cfg')，
+                                           程序就可以在/home/wang/myproject/flaskr/abc中找到abc.cfg了
+
     :param root_path: Flask by default will automatically calculate the path
                       to the root of the application.  In certain situations
                       this cannot be achieved (for instance if the package
                       is a Python 3 namespace package) and needs to be
                       manually defined.
+                      翻译: Flask 自动地把此变量设置为 Flask 应用的根目录.
+                            在某些情况下无法获得(是一个python3的命名空间的包), 需要手动指定
+
     """
 
     #: The class that is used for request objects.  See :class:`~flask.Request`
